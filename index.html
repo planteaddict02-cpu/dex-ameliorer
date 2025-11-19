@@ -195,8 +195,8 @@
                                 🎁
                             </div>
                             <div class="flex-1">
-                                <div class="text-emerald-400 font-bold text-lg mb-1">Gagnez des JERCAT à chaque swap !</div>
-                                <div class="text-slate-300 text-sm">Récompense automatique : <span class="text-emerald-400 font-bold">0.1% du montant swappé</span></div>
+                                <div class="text-emerald-400 font-bold text-lg mb-1">Gagnez 1 JERCAT à chaque swap !</div>
+                                <div class="text-slate-300 text-sm">Récompense automatique : <span class="text-emerald-400 font-bold">1 JERCAT</span> par transaction</div>
                             </div>
                         </div>
                     </div>
@@ -314,8 +314,8 @@
                                 <span class="text-amber-400 font-semibold" id="platformFee">-</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-emerald-400">🎁 Reward (0.1%)</span>
-                                <span class="text-emerald-400 font-bold" id="rewardAmount">-</span>
+                                <span class="text-emerald-400">🎁 Reward</span>
+                                <span class="text-emerald-400 font-bold">1 JERCAT</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-slate-400">Min. Received</span>
@@ -621,7 +621,7 @@
                             </div>
                             <div class="bg-slate-900/50 rounded-lg p-3">
                                 <div class="text-xs text-slate-400 mb-1">Reward Rate</div>
-                                <div class="text-lg font-bold text-emerald-400">0.1%</div>
+                                <div class="text-lg font-bold text-emerald-400">1 JERCAT</div>
                             </div>
                         </div>
                     </div>
@@ -661,8 +661,8 @@
                                     <span class="text-emerald-400 font-bold">2</span>
                                 </div>
                                 <div>
-                                    <div class="text-white font-semibold text-sm mb-1">Recevez 0.1%</div>
-                                    <div class="text-slate-400 text-xs">Vous recevez automatiquement 0.1% du montant en JERCAT</div>
+                                    <div class="text-white font-semibold text-sm mb-1">Recevez 1 JERCAT</div>
+                                    <div class="text-slate-400 text-xs">Vous recevez automatiquement 1 JERCAT par swap</div>
                                 </div>
                             </div>
                             <div class="flex gap-3">
@@ -744,8 +744,11 @@
         const SHIB_ADDRESS = '0x2859e4544C4bB03966803b044A93563Bd2D0DD4D';
         const PANCAKESWAP_ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
 
-        // ⚠️ CHANGEZ CETTE ADRESSE POUR RECEVOIR LES FEES ⚠️
-        const PLATFORM_FEE_RECEIVER = '0xVOTRE_ADRESSE_ICI'; // ← Mettez votre adresse wallet ici
+        // ⚠️ TON ADRESSE WALLET POUR RECEVOIR LES FEES ⚠️
+        const PLATFORM_FEE_RECEIVER = '0xTON_ADRESSE_ICI'; // ← CHANGE ICI
+        
+        // ⚠️ ADRESSE DU WALLET QUI DISTRIBUE LES JERCAT REWARDS ⚠️
+        const JERCAT_REWARDS_DISTRIBUTOR = '0xTON_ADRESSE_ICI'; // ← Même adresse ou une autre
 
         let web3, account = '', currentChain = 'BSC', slippage = 1.0;
         let jercatPrice = 0, bnbPrice = 670, usdtPrice = 1, busdPrice = 1, usdcPrice = 1;
@@ -1390,13 +1393,17 @@
 
                 document.getElementById('exchangeRate').textContent = `1 ${fromToken.symbol} = ${(amountOut / fromAmount).toFixed(6)} ${toToken.symbol}`;
                 
-                // Platform fee 0.01% in BNB
-                const platformFeeAmount = fromAmount * 0.0001;
-                document.getElementById('platformFee').textContent = platformFeeAmount.toFixed(6) + ' BNB';
+                // Platform fee 0.01% in BNB (calculé sur le montant FROM converti en BNB)
+                let platformFeeInBNB;
+                if (fromToken.symbol === 'BNB') {
+                    platformFeeInBNB = fromAmount * 0.0001; // 0.01% du montant BNB
+                } else {
+                    // Convertir le montant USD en BNB
+                    platformFeeInBNB = (fromUSD * 0.0001) / bnbPrice; // 0.01% du montant en BNB
+                }
+                document.getElementById('platformFee').textContent = platformFeeInBNB.toFixed(6) + ' BNB (~$' + (platformFeeInBNB * bnbPrice).toFixed(2) + ')';
                 
-                // Reward 0.1% in value
-                const rewardAmount = fromUSD * 0.001 / jercatPrice;
-                document.getElementById('rewardAmount').textContent = rewardAmount.toFixed(4) + ' JERCAT';
+                // Reward: TOUJOURS 1 JERCAT (affichage déjà fixe dans le HTML)
                 
                 const minReceived = amountOut * (1 - slippage / 100);
                 document.getElementById('minReceived').textContent = minReceived.toFixed(6) + ' ' + toToken.symbol;
@@ -1470,8 +1477,28 @@
                 
                 const deadline = Math.floor(Date.now() / 1000) + (20 * 60);
 
-                // Calculate platform fee (0.01% in BNB)
-                const platformFee = web3.utils.toWei((fromAmount * 0.0001).toString(), 'ether');
+                // Calculate platform fee (0.01% en BNB du montant swappé)
+                function getTokenPrice(tokenSymbol) {
+                    if (tokenPricesCache[tokenSymbol] && tokenPricesCache[tokenSymbol] > 0) {
+                        return tokenPricesCache[tokenSymbol];
+                    }
+                    if (tokenSymbol === 'BNB') return bnbPrice;
+                    if (tokenSymbol === 'JERCAT') return jercatPrice;
+                    if (tokenSymbol === 'USDT' || tokenSymbol === 'BUSD' || tokenSymbol === 'USDC') return 1;
+                    return 1;
+                }
+                
+                let platformFeeInBNB;
+                if (fromToken.isNative) {
+                    platformFeeInBNB = fromAmount * 0.0001; // 0.01% du montant BNB
+                } else {
+                    const fromPrice = getTokenPrice(fromToken.symbol);
+                    const fromUSD = fromAmount * fromPrice;
+                    platformFeeInBNB = (fromUSD * 0.0001) / bnbPrice; // 0.01% du montant converti en BNB
+                }
+                
+                const platformFee = web3.utils.toWei(platformFeeInBNB.toString(), 'ether');
+                console.log('💰 Platform fee:', platformFeeInBNB.toFixed(6), 'BNB → Sent to', PLATFORM_FEE_RECEIVER);
 
                 document.getElementById('swapBtn').innerHTML = '<div class="loading-spinner mx-auto"></div>';
                 document.getElementById('swapBtn').disabled = true;
@@ -1524,29 +1551,35 @@
                     });
                 }
 
-                // Calculate and distribute reward (0.1% of swap value in JERCAT)
-                const fromPrice = tokenPricesCache[fromToken.symbol] || (fromToken.symbol === 'JERCAT' ? jercatPrice : 1);
+                // 🎁 DISTRIBUTION DU REWARD: 1 JERCAT FIXE
+                const rewardAmount = 1; // TOUJOURS 1 JERCAT par swap
+                const fromPrice = getTokenPrice(fromToken.symbol);
                 const fromUSD = fromAmount * fromPrice;
-                const rewardAmount = fromUSD * 0.001 / jercatPrice;
                 
-                // Add reward to user's history (simulated - requires backend in production)
+                console.log('🎁 Reward à distribuer: 1 JERCAT à', account);
+                
+                // Add reward to user's history
                 userRewards.total += rewardAmount;
                 userRewards.swapCount++;
                 userRewards.totalVolume += fromUSD;
                 userRewards.history.push({
-                    amount: rewardAmount,
+                    amount: rewardAmount, // 1 JERCAT fixe
                     usdValue: rewardAmount * jercatPrice,
                     date: new Date().toLocaleString(),
                     fromToken: fromToken.symbol,
                     toToken: toToken.symbol,
-                    txHash: txHash
+                    txHash: txHash,
+                    status: 'pending' // À distribuer
                 });
                 
                 saveRewardsToStorage();
                 updateRewardsUI();
                 createConfetti();
                 
-                showNotification(`🎉 Swap réussi ! +${rewardAmount.toFixed(4)} JERCAT gagné !`, 'success');
+                // MESSAGE DE SUCCÈS
+                showNotification(`🎉 Swap réussi ! 1 JERCAT gagné !`, 'success');
+                console.log('✅ Fee envoyée:', platformFeeInBNB.toFixed(6), 'BNB →', PLATFORM_FEE_RECEIVER);
+                console.log('✅ Reward enregistré: 1 JERCAT pour', account);
 
                 document.getElementById('fromAmount').value = '';
                 document.getElementById('toAmount').value = '';
