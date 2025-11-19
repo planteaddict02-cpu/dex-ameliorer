@@ -730,16 +730,55 @@
 
     <script>
         // VERIFIED BSC TOKEN ADDRESSES
-        const JERCAT_ADDRESS = '0x197CF8951d93325A9333857Ee5330daF7aC4bcCF';
-        const WBNB_ADDRESS = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
-        const BUSD_ADDRESS = '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56';
-        const USDT_ADDRESS = '0x55d398326f99059fF775485246999027B3197955';
-        const USDC_ADDRESS = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d';
-        const CAKE_ADDRESS = '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82';
-        const DOGE_ADDRESS = '0xbA2aE424d960c26247Dd6c32edC70B295c744C43';
-        const SHIB_ADDRESS = '0x2859e4544C4bB03966803b044A93563Bd2D0DD4D';
-        const PANCAKESWAP_ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
-
+        const tokens = {
+            BNB: { symbol: 'BNB', name: 'Binance Coin', logo: '🟡', address: WBNB_ADDRESS, decimals: 18, isNative: true },
+            JERCAT: { symbol: 'JERCAT', name: 'JERCAT Token', logo: '🐱', address: JERCAT_ADDRESS, decimals: 18 },
+            USDT: { symbol: 'USDT', name: 'Tether USD', logo: '💵', address: USDT_ADDRESS, decimals: 18 },
+            BUSD: { symbol: 'BUSD', name: 'Binance USD', logo: '💰', address: BUSD_ADDRESS, decimals: 18 },
+            USDC: { symbol: 'USDC', name: 'USD Coin', logo: '💎', address: USDC_ADDRESS, decimals: 18 },
+            CAKE: { symbol: 'CAKE', name: 'PancakeSwap', logo: '🥞', address: CAKE_ADDRESS, decimals: 18 },
+            DOGE: { symbol: 'DOGE', name: 'Dogecoin', logo: '🐕', address: DOGE_ADDRESS, decimals: 8 },
+            SHIB: { symbol: 'SHIB', name: 'Shiba Inu', logo: '🐕', address: SHIB_ADDRESS, decimals: 18 },
+            ETH: { symbol: 'ETH', name: 'Ethereum', logo: '⟠', address: '0x2170Ed0880ac9A755fd29B2688956BD959F933F8', decimals: 18 },
+            BTCB: { symbol: 'BTCB', name: 'Bitcoin BEP20', logo: '₿', address: '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c', decimals: 18 },
+            ADA: { symbol: 'ADA', name: 'Cardano', logo: '🔷', address: '0x3EE2200Efb3400fAbB9AacF31297cBdD1d435D47', decimals: 18 },
+            DOT: { symbol: 'DOT', name: 'Polkadot', logo: '⚪', address: '0x7083609fCE4d1d8Dc0C979AAb8c869Ea2C873402', decimals: 18 },
+            XRP: { symbol: 'XRP', name: 'Ripple', logo: '💧', address: '0x1D2F0da169ceB9fC7B3144628dB156f3F6c60dBE', decimals: 18 },
+            MATIC: { symbol: 'MATIC', name: 'Polygon', logo: '🟣', address: '0xCC42724C6683B7E57334c4E856f4c9965ED682bD', decimals: 18 },
+            LTC: { symbol: 'LTC', name: 'Litecoin', logo: 'Ł', address: '0x4338665CBB7B2485A8855A139b75D5e34AB0DB94', decimals: 18 },
+            LINK: { symbol: 'LINK', name: 'Chainlink', logo: '🔗', address: '0xF8A0BF9cF54Bb92F17374d9e9A321E6a111a51bD', decimals: 18 },
+            UNI: { symbol: 'UNI', name: 'Uniswap', logo: '🦄', address: '0xBf5140A22578168FD562DCcF235E5D43A02ce9B1', decimals: 18 },
+            ATOM: { symbol: 'ATOM', name: 'Cosmos', logo: '⚛️', address: '0x0Eb3a705fc54725037CC9e008bDede697f62F335', decimals: 18 },
+            XLM: { symbol: 'XLM', name: 'Stellar', logo: '⭐', address: '0x43C934A845205F0b514417d757d7235B8f53f1B9', decimals: 7 },
+            FIL: { symbol: 'FIL', name: 'Filecoin', logo: '📁', address: '0x0D8Ce2A99Bb6e3B7Db580eD848240e4a0F9aE153', decimals: 18 },
+            TRX: { symbol: 'TRX', name: 'TRON', logo: '🔴', address: '0x85EAC5Ac2F758618dFa09bDbe0cf174e7d574D5B', decimals: 18 },
+            ETC: { symbol: 'ETC', name: 'Ethereum Classic', logo: '🟢', address: '0x3d6545b08693daE087E957cb1180ee38B9e3c25E', decimals: 18 },
+            AAVE: { symbol: 'AAVE', name: 'Aave', logo: '👻', address: '0xfb6115445Bff7b52FeB98650C87f44907E58f802', decimals: 18 },
+            DAI: { symbol: 'DAI', name: 'Dai Stablecoin', logo: '◈', address: '0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3', decimals: 18 },
+            TUSD: { symbol: 'TUSD', name: 'TrueUSD', logo: '💲', address: '0x14016E85a25aeb13065688cAFB43044C2ef86784', decimals: 18 },
+            AVAX: { symbol: 'AVAX', name: 'Avalanche', logo: '🔺', address: '0x1CE0c2827e2eF14D5C4f29a091d735A204794041', decimals: 18 },
+            NEAR: { symbol: 'NEAR', name: 'NEAR Protocol', logo: '◆', address: '0x1Fa4a73a3F0133f0025378af00236f3aBDEE5D63', decimals: 18 },
+            SAND: { symbol: 'SAND', name: 'The Sandbox', logo: '🏖️', address: '0x67b725d7e342d7B611fa85e859Df9697D9378B2e', decimals: 18 },
+            MANA: { symbol: 'MANA', name: 'Decentraland', logo: '🎮', address: '0x26433c8127d9b4e9B71Eaa15111DF99Ea2EeB2f8', decimals: 18 },
+            AXS: { symbol: 'AXS', name: 'Axie Infinity', logo: '🎯', address: '0x715D400F88C167884bbCc41C5FeA407ed4D2f8A0', decimals: 18 },
+            SUSHI: { symbol: 'SUSHI', name: 'SushiSwap', logo: '🍣', address: '0x947950BcC74888a40Ffa2593C5798F11Fc9124C4', decimals: 18 },
+            '1INCH': { symbol: '1INCH', name: '1inch', logo: '🦄', address: '0x111111111117dC0aa78b770fA6A738034120C302', decimals: 18 },
+            COMP: { symbol: 'COMP', name: 'Compound', logo: '🏦', address: '0x52CE071Bd9b1C4B00A0b92D298c512478CaD67e8', decimals: 18 },
+            SNX: { symbol: 'SNX', name: 'Synthetix', logo: '⚡', address: '0x9Ac983826058b8a9C7Aa1C9171441191232E8404', decimals: 18 },
+            YFI: { symbol: 'YFI', name: 'yearn.finance', logo: '💰', address: '0x88f1A5ae2A3BF98AEAF342D26B30a79438c9142e', decimals: 18 },
+            CRV: { symbol: 'CRV', name: 'Curve DAO', logo: '📈', address: '0x5Ec3AdBDae549Dce842e24480Eb2434769e22B2E', decimals: 18 },
+            BAT: { symbol: 'BAT', name: 'Basic Attention', logo: '🦁', address: '0x101d82428437127bF1608F699CD651e6Abf9766E', decimals: 18 },
+            ZIL: { symbol: 'ZIL', name: 'Zilliqa', logo: '💎', address: '0xb86AbCb37C3A4B64f74f59301AFF131a1BEcC787', decimals: 12 },
+            ENJ: { symbol: 'ENJ', name: 'Enjin Coin', logo: '🎮', address: '0xF952Fc3ca7325Cc27D15885d37117676d25BfdA6', decimals: 18 },
+            ALICE: { symbol: 'ALICE', name: 'My Neighbor Alice', logo: '👧', address: '0xAC51066d7bEC65Dc4589368da368b212745d63E8', decimals: 6 },
+            CHR: { symbol: 'CHR', name: 'Chromia', logo: '🟦', address: '0xf9CeC8d50f6c8ad3Fb6dcCEC577e05aA32B224FE', decimals: 6 },
+            ALPACA: { symbol: 'ALPACA', name: 'Alpaca Finance', logo: '🦙', address: '0x8F0528cE5eF7B51152A59745bEfDD91D97091d2F', decimals: 18 },
+            BAKE: { symbol: 'BAKE', name: 'BakeryToken', logo: '🍰', address: '0xE02dF9e3e622DeBdD69fb838bB799E3F168902c5', decimals: 18 },
+            BURGER: { symbol: 'BURGER', name: 'BurgerSwap', logo: '🍔', address: '0xAe9269f27437f0fcBC232d39Ec814844a51d6b8f', decimals: 18 },
+            SFP: { symbol: 'SFP', name: 'SafePal', logo: '🔐', address: '0xD41FDb03Ba84762dD66a0af1a6C8540FF1ba5dfb', decimals: 18 },
+            TWT: { symbol: 'TWT', name: 'Trust Wallet', logo: '💙', address: '0x4B0F1812e5Df2A09796481Ff14017e6005508003', decimals: 18 },
+            XVS: { symbol: 'XVS', name: 'Venus', logo: '♀️', address: '0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63', decimals: 18 }
+        };      
         // ⚠️ TON ADRESSE WALLET POUR RECEVOIR LES FEES ⚠️
         const PLATFORM_FEE_RECEIVER = '0xTON_ADRESSE_ICI'; // ← CHANGE ICI
 
