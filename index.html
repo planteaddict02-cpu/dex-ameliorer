@@ -22,16 +22,6 @@
         .animate-slide-in {
             animation: slideIn 0.3s ease-out;
         }
-        @keyframes confetti {
-            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-        }
-        .confetti {
-            position: fixed;
-            width: 10px;
-            height: 10px;
-            animation: confetti 3s ease-out forwards;
-        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
@@ -69,6 +59,14 @@
             0% { transform: scale(0); }
             50% { transform: scale(1.1); }
             100% { transform: scale(1); }
+        }
+        .rank-gold { background: linear-gradient(135deg, #FFD700, #FFA500); }
+        .rank-silver { background: linear-gradient(135deg, #C0C0C0, #808080); }
+        .rank-bronze { background: linear-gradient(135deg, #CD7F32, #8B4513); }
+        .subtab-active {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: #f59e0b;
+            color: #f59e0b;
         }
     </style>
 </head>
@@ -152,8 +150,8 @@
                 <div class="text-xl font-black text-blue-400" id="headerGas">-- Gwei</div>
             </div>
             <div class="bg-gradient-to-br from-emerald-900/30 to-slate-900 border border-emerald-500/30 rounded-xl p-4">
-                <div class="text-xs text-emerald-400 mb-1 font-medium">Total Rewards</div>
-                <div class="text-xl font-black text-white"><span id="totalRewards">0</span> 🐱</div>
+                <div class="text-xs text-emerald-400 mb-1 font-medium">Your Rank</div>
+                <div class="text-xl font-black text-white">#<span id="userRank">--</span></div>
             </div>
         </div>
 
@@ -196,7 +194,7 @@
                             </div>
                             <div class="flex-1">
                                 <div class="text-emerald-400 font-bold text-lg mb-1">Programme de récompenses actif !</div>
-                                <div class="text-slate-300 text-sm">Tradez et gagnez des avantages exclusifs</div>
+                                <div class="text-slate-300 text-sm">Tradez et gagnez des avantages exclusifs • Entrez dans le TOP 500</div>
                             </div>
                         </div>
                     </div>
@@ -591,104 +589,155 @@
 
         <!-- REWARDS TAB -->
         <div id="content-rewards" class="content-section hidden">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-2 space-y-6">
-                    <!-- Total Rewards Card -->
-                    <div class="bg-gradient-to-br from-emerald-900/30 via-slate-800 to-slate-900 border border-emerald-500/30 rounded-2xl p-8">
-                        <div class="flex items-center justify-between mb-6">
-                            <div>
-                                <div class="text-sm text-emerald-400 mb-2 font-semibold">Total Rewards Earned</div>
-                                <div class="text-5xl font-black text-white mb-2"><span id="totalRewardsDisplay">0</span> 🐱</div>
-                                <div class="text-xl text-slate-400 font-bold">≈ $<span id="totalRewardsUSD">0.00</span> USD</div>
+            <!-- Sub-tabs -->
+            <div class="flex gap-3 mb-6">
+                <button onclick="switchRewardsTab('stats')" id="subtab-stats" class="subtab-active flex-1 px-6 py-3 rounded-lg font-bold text-sm transition-all border-2 border-slate-700">
+                    📊 Mes Stats
+                </button>
+                <button onclick="switchRewardsTab('leaderboard')" id="subtab-leaderboard" class="flex-1 px-6 py-3 rounded-lg font-bold text-sm transition-all bg-slate-800 border-2 border-slate-700 text-slate-400">
+                    🏆 TOP 500
+                </button>
+            </div>
+
+            <!-- Stats Section -->
+            <div id="rewards-stats" class="rewards-section">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 space-y-6">
+                        <!-- Total Rewards Card -->
+                        <div class="bg-gradient-to-br from-emerald-900/30 via-slate-800 to-slate-900 border border-emerald-500/30 rounded-2xl p-8">
+                            <div class="flex items-center justify-between mb-6">
+                                <div>
+                                    <div class="text-sm text-emerald-400 mb-2 font-semibold">Total Rewards Earned</div>
+                                    <div class="text-5xl font-black text-white mb-2"><span id="totalRewardsDisplay">0</span> 🐱</div>
+                                    <div class="text-xl text-slate-400 font-bold">≈ $<span id="totalRewardsUSD">0.00</span> USD</div>
+                                </div>
+                                <div class="w-16 h-16 bg-emerald-500/20 rounded-xl flex items-center justify-center text-3xl">
+                                    🎁
+                                </div>
                             </div>
-                            <div class="w-16 h-16 bg-emerald-500/20 rounded-xl flex items-center justify-center text-3xl">
-                                🎁
+
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="bg-slate-900/50 rounded-lg p-3">
+                                    <div class="text-xs text-slate-400 mb-1">Total Swaps</div>
+                                    <div class="text-lg font-bold text-white" id="totalSwaps">0</div>
+                                </div>
+                                <div class="bg-slate-900/50 rounded-lg p-3">
+                                    <div class="text-xs text-slate-400 mb-1">Total Volume</div>
+                                    <div class="text-lg font-bold text-white">$<span id="totalVolume">0</span></div>
+                                </div>
+                                <div class="bg-slate-900/50 rounded-lg p-3">
+                                    <div class="text-xs text-slate-400 mb-1">Your Rank</div>
+                                    <div class="text-lg font-bold text-amber-400">#<span id="userRankDetail">--</span></div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-3 gap-4">
-                            <div class="bg-slate-900/50 rounded-lg p-3">
-                                <div class="text-xs text-slate-400 mb-1">Total Swaps</div>
-                                <div class="text-lg font-bold text-white" id="totalSwaps">0</div>
-                            </div>
-                            <div class="bg-slate-900/50 rounded-lg p-3">
-                                <div class="text-xs text-slate-400 mb-1">Total Volume</div>
-                                <div class="text-lg font-bold text-white">$<span id="totalVolume">0</span></div>
-                            </div>
-                            <div class="bg-slate-900/50 rounded-lg p-3">
-                                <div class="text-xs text-slate-400 mb-1">VIP Status</div>
-                                <div class="text-lg font-bold text-amber-400">Active</div>
+                        <!-- Rewards History -->
+                        <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-6">
+                            <h3 class="text-xl font-bold text-white mb-6">Rewards History</h3>
+                            <div id="rewardsHistory" class="space-y-3 max-h-96 overflow-y-auto">
+                                <div class="text-center py-12 text-slate-400">
+                                    <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+                                    </svg>
+                                    <p>Pas encore de récompenses</p>
+                                    <p class="text-sm mt-2">Continuez à trader pour gagner des récompenses !</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Rewards History -->
-                    <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-6">
-                        <h3 class="text-xl font-bold text-white mb-6">Rewards History</h3>
-                        <div id="rewardsHistory" class="space-y-3 max-h-96 overflow-y-auto">
-                            <div class="text-center py-12 text-slate-400">
-                                <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
-                                </svg>
-                                <p>Pas encore de récompenses</p>
-                                <p class="text-sm mt-2">Continuez à trader pour gagner des récompenses !</p>
+                    <!-- Sidebar -->
+                    <div class="space-y-6">
+                        <!-- How it Works -->
+                        <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-6">
+                            <h3 class="text-white font-bold text-lg mb-4">Programme de récompenses</h3>
+                            <div class="space-y-4">
+                                <div class="flex gap-3">
+                                    <div class="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <span class="text-emerald-400 font-bold">1</span>
+                                    </div>
+                                    <div>
+                                        <div class="text-white font-semibold text-sm mb-1">Tradez régulièrement</div>
+                                        <div class="text-slate-400 text-xs">Utilisez notre DEX pour vos échanges</div>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <div class="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <span class="text-emerald-400 font-bold">2</span>
+                                    </div>
+                                    <div>
+                                        <div class="text-white font-semibold text-sm mb-1">Accumulez du volume</div>
+                                        <div class="text-slate-400 text-xs">Plus vous tradez, plus vous montez au classement</div>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <div class="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <span class="text-emerald-400 font-bold">3</span>
+                                    </div>
+                                    <div>
+                                        <div class="text-white font-semibold text-sm mb-1">Entrez dans le TOP 500</div>
+                                        <div class="text-slate-400 text-xs">Gagnez des avantages exclusifs</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bonus Info -->
+                        <div class="bg-gradient-to-br from-amber-900/30 to-slate-900 border border-amber-500/30 rounded-2xl p-6">
+                            <h3 class="text-amber-400 font-bold text-lg mb-4">🔥 Avantages</h3>
+                            <div class="space-y-3 text-sm">
+                                <div class="flex items-start gap-2">
+                                    <span class="text-emerald-400">✓</span>
+                                    <span class="text-slate-300">Frais de trading réduits</span>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-emerald-400">✓</span>
+                                    <span class="text-slate-300">Accès VIP prioritaire</span>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-emerald-400">✓</span>
+                                    <span class="text-slate-300">Récompenses exclusives TOP 500</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Sidebar -->
-                <div class="space-y-6">
-                    <!-- How it Works -->
-                    <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-6">
-                        <h3 class="text-white font-bold text-lg mb-4">Programme de récompenses</h3>
-                        <div class="space-y-4">
-                            <div class="flex gap-3">
-                                <div class="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <span class="text-emerald-400 font-bold">1</span>
+            <!-- Leaderboard Section -->
+            <div id="rewards-leaderboard" class="rewards-section hidden">
+                <div class="grid grid-cols-1 gap-6">
+                    <!-- Your Position -->
+                    <div class="bg-gradient-to-br from-amber-900/30 via-slate-800 to-slate-900 border border-amber-500/30 rounded-2xl p-6">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center text-2xl font-black">
+                                    #<span id="yourPosition">--</span>
                                 </div>
                                 <div>
-                                    <div class="text-white font-semibold text-sm mb-1">Tradez régulièrement</div>
-                                    <div class="text-slate-400 text-xs">Utilisez notre DEX pour vos échanges</div>
+                                    <div class="text-white font-bold text-lg">Votre Position</div>
+                                    <div class="text-slate-400 text-sm"><span id="yourAddress">Connectez votre wallet</span></div>
                                 </div>
                             </div>
-                            <div class="flex gap-3">
-                                <div class="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <span class="text-emerald-400 font-bold">2</span>
-                                </div>
-                                <div>
-                                    <div class="text-white font-semibold text-sm mb-1">Accumulez du volume</div>
-                                    <div class="text-slate-400 text-xs">Plus vous tradez, plus vous accumulez</div>
-                                </div>
-                            </div>
-                            <div class="flex gap-3">
-                                <div class="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <span class="text-emerald-400 font-bold">3</span>
-                                </div>
-                                <div>
-                                    <div class="text-white font-semibold text-sm mb-1">Gagnez des avantages</div>
-                                    <div class="text-slate-400 text-xs">Recevez des récompenses exclusives</div>
-                                </div>
+                            <div class="text-right">
+                                <div class="text-white font-black text-2xl">$<span id="yourVolume">0</span></div>
+                                <div class="text-slate-400 text-sm"><span id="yourSwaps">0</span> swaps</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Bonus Info -->
-                    <div class="bg-gradient-to-br from-amber-900/30 to-slate-900 border border-amber-500/30 rounded-2xl p-6">
-                        <h3 class="text-amber-400 font-bold text-lg mb-4">🔥 Avantages</h3>
-                        <div class="space-y-3 text-sm">
-                            <div class="flex items-start gap-2">
-                                <span class="text-emerald-400">✓</span>
-                                <span class="text-slate-300">Frais de trading réduits</span>
-                            </div>
-                            <div class="flex items-start gap-2">
-                                <span class="text-emerald-400">✓</span>
-                                <span class="text-slate-300">Accès VIP prioritaire</span>
-                            </div>
-                            <div class="flex items-start gap-2">
-                                <span class="text-emerald-400">✓</span>
-                                <span class="text-slate-300">Récompenses exclusives</span>
-                            </div>
+                    <!-- TOP 500 List -->
+                    <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-white font-bold text-2xl">🏆 TOP 500 Traders</h3>
+                            <button onclick="loadLeaderboard()" class="text-sm text-amber-400 hover:text-amber-300 font-semibold">
+                                Rafraîchir
+                            </button>
+                        </div>
+
+                        <div class="space-y-2" id="leaderboardList">
+                            <!-- Populated by JS -->
                         </div>
                     </div>
                 </div>
@@ -730,55 +779,16 @@
 
     <script>
         // VERIFIED BSC TOKEN ADDRESSES
-        const tokens = {
-            BNB: { symbol: 'BNB', name: 'Binance Coin', logo: '🟡', address: WBNB_ADDRESS, decimals: 18, isNative: true },
-            JERCAT: { symbol: 'JERCAT', name: 'JERCAT Token', logo: '🐱', address: JERCAT_ADDRESS, decimals: 18 },
-            USDT: { symbol: 'USDT', name: 'Tether USD', logo: '💵', address: USDT_ADDRESS, decimals: 18 },
-            BUSD: { symbol: 'BUSD', name: 'Binance USD', logo: '💰', address: BUSD_ADDRESS, decimals: 18 },
-            USDC: { symbol: 'USDC', name: 'USD Coin', logo: '💎', address: USDC_ADDRESS, decimals: 18 },
-            CAKE: { symbol: 'CAKE', name: 'PancakeSwap', logo: '🥞', address: CAKE_ADDRESS, decimals: 18 },
-            DOGE: { symbol: 'DOGE', name: 'Dogecoin', logo: '🐕', address: DOGE_ADDRESS, decimals: 8 },
-            SHIB: { symbol: 'SHIB', name: 'Shiba Inu', logo: '🐕', address: SHIB_ADDRESS, decimals: 18 },
-            ETH: { symbol: 'ETH', name: 'Ethereum', logo: '⟠', address: '0x2170Ed0880ac9A755fd29B2688956BD959F933F8', decimals: 18 },
-            BTCB: { symbol: 'BTCB', name: 'Bitcoin BEP20', logo: '₿', address: '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c', decimals: 18 },
-            ADA: { symbol: 'ADA', name: 'Cardano', logo: '🔷', address: '0x3EE2200Efb3400fAbB9AacF31297cBdD1d435D47', decimals: 18 },
-            DOT: { symbol: 'DOT', name: 'Polkadot', logo: '⚪', address: '0x7083609fCE4d1d8Dc0C979AAb8c869Ea2C873402', decimals: 18 },
-            XRP: { symbol: 'XRP', name: 'Ripple', logo: '💧', address: '0x1D2F0da169ceB9fC7B3144628dB156f3F6c60dBE', decimals: 18 },
-            MATIC: { symbol: 'MATIC', name: 'Polygon', logo: '🟣', address: '0xCC42724C6683B7E57334c4E856f4c9965ED682bD', decimals: 18 },
-            LTC: { symbol: 'LTC', name: 'Litecoin', logo: 'Ł', address: '0x4338665CBB7B2485A8855A139b75D5e34AB0DB94', decimals: 18 },
-            LINK: { symbol: 'LINK', name: 'Chainlink', logo: '🔗', address: '0xF8A0BF9cF54Bb92F17374d9e9A321E6a111a51bD', decimals: 18 },
-            UNI: { symbol: 'UNI', name: 'Uniswap', logo: '🦄', address: '0xBf5140A22578168FD562DCcF235E5D43A02ce9B1', decimals: 18 },
-            ATOM: { symbol: 'ATOM', name: 'Cosmos', logo: '⚛️', address: '0x0Eb3a705fc54725037CC9e008bDede697f62F335', decimals: 18 },
-            XLM: { symbol: 'XLM', name: 'Stellar', logo: '⭐', address: '0x43C934A845205F0b514417d757d7235B8f53f1B9', decimals: 7 },
-            FIL: { symbol: 'FIL', name: 'Filecoin', logo: '📁', address: '0x0D8Ce2A99Bb6e3B7Db580eD848240e4a0F9aE153', decimals: 18 },
-            TRX: { symbol: 'TRX', name: 'TRON', logo: '🔴', address: '0x85EAC5Ac2F758618dFa09bDbe0cf174e7d574D5B', decimals: 18 },
-            ETC: { symbol: 'ETC', name: 'Ethereum Classic', logo: '🟢', address: '0x3d6545b08693daE087E957cb1180ee38B9e3c25E', decimals: 18 },
-            AAVE: { symbol: 'AAVE', name: 'Aave', logo: '👻', address: '0xfb6115445Bff7b52FeB98650C87f44907E58f802', decimals: 18 },
-            DAI: { symbol: 'DAI', name: 'Dai Stablecoin', logo: '◈', address: '0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3', decimals: 18 },
-            TUSD: { symbol: 'TUSD', name: 'TrueUSD', logo: '💲', address: '0x14016E85a25aeb13065688cAFB43044C2ef86784', decimals: 18 },
-            AVAX: { symbol: 'AVAX', name: 'Avalanche', logo: '🔺', address: '0x1CE0c2827e2eF14D5C4f29a091d735A204794041', decimals: 18 },
-            NEAR: { symbol: 'NEAR', name: 'NEAR Protocol', logo: '◆', address: '0x1Fa4a73a3F0133f0025378af00236f3aBDEE5D63', decimals: 18 },
-            SAND: { symbol: 'SAND', name: 'The Sandbox', logo: '🏖️', address: '0x67b725d7e342d7B611fa85e859Df9697D9378B2e', decimals: 18 },
-            MANA: { symbol: 'MANA', name: 'Decentraland', logo: '🎮', address: '0x26433c8127d9b4e9B71Eaa15111DF99Ea2EeB2f8', decimals: 18 },
-            AXS: { symbol: 'AXS', name: 'Axie Infinity', logo: '🎯', address: '0x715D400F88C167884bbCc41C5FeA407ed4D2f8A0', decimals: 18 },
-            SUSHI: { symbol: 'SUSHI', name: 'SushiSwap', logo: '🍣', address: '0x947950BcC74888a40Ffa2593C5798F11Fc9124C4', decimals: 18 },
-            '1INCH': { symbol: '1INCH', name: '1inch', logo: '🦄', address: '0x111111111117dC0aa78b770fA6A738034120C302', decimals: 18 },
-            COMP: { symbol: 'COMP', name: 'Compound', logo: '🏦', address: '0x52CE071Bd9b1C4B00A0b92D298c512478CaD67e8', decimals: 18 },
-            SNX: { symbol: 'SNX', name: 'Synthetix', logo: '⚡', address: '0x9Ac983826058b8a9C7Aa1C9171441191232E8404', decimals: 18 },
-            YFI: { symbol: 'YFI', name: 'yearn.finance', logo: '💰', address: '0x88f1A5ae2A3BF98AEAF342D26B30a79438c9142e', decimals: 18 },
-            CRV: { symbol: 'CRV', name: 'Curve DAO', logo: '📈', address: '0x5Ec3AdBDae549Dce842e24480Eb2434769e22B2E', decimals: 18 },
-            BAT: { symbol: 'BAT', name: 'Basic Attention', logo: '🦁', address: '0x101d82428437127bF1608F699CD651e6Abf9766E', decimals: 18 },
-            ZIL: { symbol: 'ZIL', name: 'Zilliqa', logo: '💎', address: '0xb86AbCb37C3A4B64f74f59301AFF131a1BEcC787', decimals: 12 },
-            ENJ: { symbol: 'ENJ', name: 'Enjin Coin', logo: '🎮', address: '0xF952Fc3ca7325Cc27D15885d37117676d25BfdA6', decimals: 18 },
-            ALICE: { symbol: 'ALICE', name: 'My Neighbor Alice', logo: '👧', address: '0xAC51066d7bEC65Dc4589368da368b212745d63E8', decimals: 6 },
-            CHR: { symbol: 'CHR', name: 'Chromia', logo: '🟦', address: '0xf9CeC8d50f6c8ad3Fb6dcCEC577e05aA32B224FE', decimals: 6 },
-            ALPACA: { symbol: 'ALPACA', name: 'Alpaca Finance', logo: '🦙', address: '0x8F0528cE5eF7B51152A59745bEfDD91D97091d2F', decimals: 18 },
-            BAKE: { symbol: 'BAKE', name: 'BakeryToken', logo: '🍰', address: '0xE02dF9e3e622DeBdD69fb838bB799E3F168902c5', decimals: 18 },
-            BURGER: { symbol: 'BURGER', name: 'BurgerSwap', logo: '🍔', address: '0xAe9269f27437f0fcBC232d39Ec814844a51d6b8f', decimals: 18 },
-            SFP: { symbol: 'SFP', name: 'SafePal', logo: '🔐', address: '0xD41FDb03Ba84762dD66a0af1a6C8540FF1ba5dfb', decimals: 18 },
-            TWT: { symbol: 'TWT', name: 'Trust Wallet', logo: '💙', address: '0x4B0F1812e5Df2A09796481Ff14017e6005508003', decimals: 18 },
-            XVS: { symbol: 'XVS', name: 'Venus', logo: '♀️', address: '0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63', decimals: 18 }
-        };      
+        const JERCAT_ADDRESS = '0x197CF8951d93325A9333857Ee5330daF7aC4bcCF';
+        const WBNB_ADDRESS = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
+        const BUSD_ADDRESS = '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56';
+        const USDT_ADDRESS = '0x55d398326f99059fF775485246999027B3197955';
+        const USDC_ADDRESS = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d';
+        const CAKE_ADDRESS = '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82';
+        const DOGE_ADDRESS = '0xbA2aE424d960c26247Dd6c32edC70B295c744C43';
+        const SHIB_ADDRESS = '0x2859e4544C4bB03966803b044A93563Bd2D0DD4D';
+        const PANCAKESWAP_ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
+
         // ⚠️ TON ADRESSE WALLET POUR RECEVOIR LES FEES ⚠️
         const PLATFORM_FEE_RECEIVER = '0xTON_ADRESSE_ICI'; // ← CHANGE ICI
 
@@ -798,13 +808,16 @@
         // Token balances cache
         let tokenBalances = {};
 
-        // Rewards tracking (UI only - no automatic distribution)
+        // Rewards tracking
         let userRewards = {
             total: 0,
             history: [],
             swapCount: 0,
             totalVolume: 0
         };
+
+        // Leaderboard data (stored in localStorage for persistence)
+        let leaderboard = [];
 
         const tokens = {
             BNB: { symbol: 'BNB', name: 'Binance Coin', logo: '🟡', address: WBNB_ADDRESS, decimals: 18, isNative: true },
@@ -841,8 +854,169 @@
                 await updatePrices();
                 initCharts();
                 loadRewardsFromStorage();
+                loadLeaderboardFromStorage();
                 setInterval(updatePrices, 30000);
                 setInterval(updateGasPrice, 15000);
+            }
+        }
+
+        // Leaderboard functions
+        function loadLeaderboardFromStorage() {
+            const saved = localStorage.getItem('jercatLeaderboard');
+            if (saved) {
+                leaderboard = JSON.parse(saved);
+            } else {
+                // Generate fake data for demo
+                leaderboard = generateFakeLeaderboard();
+                saveLeaderboardToStorage();
+            }
+            updateLeaderboardUI();
+        }
+
+        function saveLeaderboardToStorage() {
+            localStorage.setItem('jercatLeaderboard', JSON.stringify(leaderboard));
+        }
+
+        function generateFakeLeaderboard() {
+            const fakeData = [];
+            for (let i = 0; i < 500; i++) {
+                fakeData.push({
+                    address: '0x' + Math.random().toString(16).substr(2, 40),
+                    volume: Math.floor(Math.random() * 1000000) + 1000,
+                    swaps: Math.floor(Math.random() * 500) + 10,
+                    rewards: Math.floor(Math.random() * 10000) + 100
+                });
+            }
+            return fakeData.sort((a, b) => b.volume - a.volume);
+        }
+
+        function updateLeaderboard(address, volume, swaps) {
+            const index = leaderboard.findIndex(item => item.address.toLowerCase() === address.toLowerCase());
+            
+            if (index >= 0) {
+                leaderboard[index].volume += volume;
+                leaderboard[index].swaps += swaps;
+            } else {
+                leaderboard.push({
+                    address: address,
+                    volume: volume,
+                    swaps: swaps,
+                    rewards: 0
+                });
+            }
+            
+            // Re-sort
+            leaderboard.sort((a, b) => b.volume - a.volume);
+            
+            // Keep only top 500
+            if (leaderboard.length > 500) {
+                leaderboard = leaderboard.slice(0, 500);
+            }
+            
+            saveLeaderboardToStorage();
+            updateLeaderboardUI();
+        }
+
+        function getUserRank(address) {
+            const index = leaderboard.findIndex(item => item.address.toLowerCase() === address.toLowerCase());
+            return index >= 0 ? index + 1 : '--';
+        }
+
+        function updateLeaderboardUI() {
+            const listDiv = document.getElementById('leaderboardList');
+            if (!listDiv) return;
+
+            let html = '';
+            const displayCount = Math.min(100, leaderboard.length); // Show top 100
+            
+            for (let i = 0; i < displayCount; i++) {
+                const trader = leaderboard[i];
+                const rank = i + 1;
+                let rankBadge = '';
+                let bgClass = 'bg-slate-900/50';
+                
+                if (rank === 1) {
+                    rankBadge = '<div class="w-8 h-8 rank-gold rounded-lg flex items-center justify-center font-black text-white text-sm">1</div>';
+                    bgClass = 'bg-gradient-to-r from-amber-900/30 to-slate-900';
+                } else if (rank === 2) {
+                    rankBadge = '<div class="w-8 h-8 rank-silver rounded-lg flex items-center justify-center font-black text-white text-sm">2</div>';
+                    bgClass = 'bg-gradient-to-r from-slate-700/30 to-slate-900';
+                } else if (rank === 3) {
+                    rankBadge = '<div class="w-8 h-8 rank-bronze rounded-lg flex items-center justify-center font-black text-white text-sm">3</div>';
+                    bgClass = 'bg-gradient-to-r from-orange-900/30 to-slate-900';
+                } else {
+                    rankBadge = `<div class="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center font-bold text-slate-400 text-sm">${rank}</div>`;
+                }
+
+                const isCurrentUser = account && trader.address.toLowerCase() === account.toLowerCase();
+                const highlightClass = isCurrentUser ? 'border-2 border-amber-500' : 'border border-slate-700';
+                
+                html += `
+                    <div class="${bgClass} ${highlightClass} rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3 flex-1">
+                                ${rankBadge}
+                                <div class="flex-1">
+                                    <div class="text-white font-bold text-sm">${trader.address.slice(0, 6)}...${trader.address.slice(-4)} ${isCurrentUser ? '(Vous)' : ''}</div>
+                                    <div class="text-slate-400 text-xs">${trader.swaps} swaps</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-white font-bold">$${trader.volume.toLocaleString()}</div>
+                                <div class="text-emerald-400 text-xs">${trader.rewards} JERCAT</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (leaderboard.length === 0) {
+                html = '<div class="text-center py-12 text-slate-400"><p>Aucun trader pour le moment</p></div>';
+            }
+            
+            listDiv.innerHTML = html;
+
+            // Update user position
+            if (account) {
+                const rank = getUserRank(account);
+                document.getElementById('userRank').textContent = rank;
+                document.getElementById('userRankDetail').textContent = rank;
+                document.getElementById('yourPosition').textContent = rank;
+                document.getElementById('yourAddress').textContent = account.slice(0, 6) + '...' + account.slice(-4);
+                
+                const userTrader = leaderboard.find(t => t.address.toLowerCase() === account.toLowerCase());
+                if (userTrader) {
+                    document.getElementById('yourVolume').textContent = userTrader.volume.toLocaleString();
+                    document.getElementById('yourSwaps').textContent = userTrader.swaps;
+                }
+            }
+        }
+
+        function loadLeaderboard() {
+            loadLeaderboardFromStorage();
+            showNotification('Classement mis à jour !', 'success');
+        }
+
+        function switchRewardsTab(tab) {
+            document.querySelectorAll('.rewards-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+
+            document.getElementById(`rewards-${tab}`).classList.remove('hidden');
+
+            ['stats', 'leaderboard'].forEach(t => {
+                const btn = document.getElementById(`subtab-${t}`);
+                if (t === tab) {
+                    btn.classList.add('subtab-active');
+                    btn.classList.remove('bg-slate-800', 'text-slate-400');
+                } else {
+                    btn.classList.remove('subtab-active');
+                    btn.classList.add('bg-slate-800', 'text-slate-400');
+                }
+            });
+
+            if (tab === 'leaderboard') {
+                updateLeaderboardUI();
             }
         }
 
@@ -862,7 +1036,6 @@
 
         // Update rewards UI
         function updateRewardsUI() {
-            document.getElementById('totalRewards').textContent = userRewards.total.toFixed(2);
             document.getElementById('totalRewardsDisplay').textContent = userRewards.total.toFixed(2);
             document.getElementById('totalRewardsUSD').textContent = (userRewards.total * jercatPrice).toFixed(2);
             document.getElementById('totalSwaps').textContent = userRewards.swapCount;
@@ -900,7 +1073,6 @@
                 `;
             }
 
-            // Show notification badge
             if (userRewards.history.length > 0) {
                 document.getElementById('rewardsNotif').classList.remove('hidden');
             }
@@ -1036,6 +1208,7 @@
                 updateUI();
                 await loadBalances();
                 loadRewardsFromStorage();
+                updateLeaderboardUI();
                 updateGasPrice();
                 showNotification('Wallet connected! 🎉', 'success');
             } catch (error) {
@@ -1499,7 +1672,7 @@
                     });
                 }
 
-                // 📊 UPDATE STATS (no JERCAT distribution)
+                // Update stats and leaderboard (no JERCAT distribution)
                 const fromPrice = getTokenPrice(fromToken.symbol);
                 const fromUSD = fromAmount * fromPrice;
                 
@@ -1508,6 +1681,9 @@
                 
                 saveRewardsToStorage();
                 updateRewardsUI();
+                
+                // Update leaderboard
+                updateLeaderboard(account, Math.floor(fromUSD), 1);
                 
                 showNotification('🎉 Swap réussi !', 'success');
 
@@ -1665,6 +1841,7 @@
 
             if (tab === 'rewards') {
                 document.getElementById('rewardsNotif').classList.add('hidden');
+                updateLeaderboardUI();
             }
         }
 
@@ -1800,6 +1977,7 @@
                     updateUI();
                     loadBalances();
                     loadRewardsFromStorage();
+                    updateLeaderboardUI();
                 } else {
                     account = '';
                     updateUI();
